@@ -16,7 +16,7 @@ timezone-accurate scheduling, and regional content delivery.
 - **Zero dependencies** — only the Go standard library. No transitive dependency tree to audit
 - **Proxy-aware** — plug in any `*http.Client` with a proxy transport to discover exit IPs through tunnels
 - **Context-native** — every API call takes `context.Context` for cancellation, timeouts, and tracing
-- **Nil-safe accessors** — `geo.CountryCode()`, `geo.CityName()`, `geo.TZ()` never panic on partial responses
+- **Nil-safe accessors** — `geo.CountryCode()`, `geo.CityName()`, `geo.Lat()`, `geo.TZ()` never panic on partial responses
 - **Typed errors** — `*APIError` with machine-readable codes, `errors.As` support, and convenience predicates
 - **Privacy compliance ready** — `IsEU()` helper for GDPR, country and region fields for CCPA and other regulations
 

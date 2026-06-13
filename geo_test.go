@@ -303,8 +303,8 @@ func TestGeoFromPlatformHeaders( t *testing.T ) {
 		if geo.CountryCode() != "US" {
 			t.Errorf( "CountryCode() = %q, want US", geo.CountryCode() )
 		}
-		if geo.Location.Region.Code != "CA" {
-			t.Errorf( "Region.Code = %q, want CA", geo.Location.Region.Code )
+		if geo.RegionCode() != "CA" {
+			t.Errorf( "RegionCode() = %q, want CA", geo.RegionCode() )
 		}
 		if geo.CityName() != "Mountain View" {
 			t.Errorf( "CityName() = %q, want Mountain View", geo.CityName() )
@@ -312,11 +312,11 @@ func TestGeoFromPlatformHeaders( t *testing.T ) {
 		if geo.TZ() != "America/Los_Angeles" {
 			t.Errorf( "TZ() = %q, want America/Los_Angeles", geo.TZ() )
 		}
-		if geo.Location.Coordinates.Latitude != 37.386 {
-			t.Errorf( "Latitude = %f, want 37.386", geo.Location.Coordinates.Latitude )
+		if geo.Lat() != 37.386 {
+			t.Errorf( "Lat() = %f, want 37.386", geo.Lat() )
 		}
-		if geo.Location.Coordinates.Longitude != -122.084 {
-			t.Errorf( "Longitude = %f, want -122.084", geo.Location.Coordinates.Longitude )
+		if geo.Lng() != -122.084 {
+			t.Errorf( "Lng() = %f, want -122.084", geo.Lng() )
 		}
 	})
 
