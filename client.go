@@ -40,6 +40,7 @@ type Client struct {
 	baseURL   string
 	origin    string
 	userAgent string
+	timeout   time.Duration
 	client    *http.Client
 }
 
@@ -72,12 +73,11 @@ func WithHTTPClient( hc *http.Client ) Option {
 }
 
 // WithTimeout sets the request timeout for API calls.
-// Overrides the timeout on the default http.Client. If a custom
-// http.Client is provided via WithHTTPClient, this option sets
-// its Timeout field.
+// The timeout is applied after all options, so it works correctly
+// regardless of whether WithHTTPClient is called before or after.
 func WithTimeout( d time.Duration ) Option {
 	return func( c *Client ) {
-		c.client.Timeout = d
+		c.timeout = d
 	}
 }
 
@@ -115,6 +115,12 @@ func NewClient( apiKey string, opts ...Option ) *Client {
 
 	for _, opt := range opts {
 		opt( c )
+	}
+
+	// Apply timeout after all options so it works regardless of
+	// WithHTTPClient ordering.
+	if c.timeout > 0 {
+		c.client.Timeout = c.timeout
 	}
 
 	return c
@@ -228,22 +234,26 @@ func ( c *Client ) doJSON( ctx context.Context, path string, dst any ) error {
 // doPost sends a POST request with a JSON body and decodes the JSON
 // response into dst. Returns *APIError for non-2xx responses.
 func ( c *Client ) doPost( ctx context.Context, path string, body any, dst any ) error {
-	var buf bytes.Buffer
+	var bodyReader io.Reader
 	if body != nil {
+		var buf bytes.Buffer
 		if err := json.NewEncoder( &buf ).Encode( body ); err != nil {
 			return fmt.Errorf( "netloc8: encode request body: %w", err )
 		}
+		bodyReader = &buf
 	}
 
 	reqURL := c.baseURL + path
 
-	req, err := http.NewRequestWithContext( ctx, http.MethodPost, reqURL, &buf )
+	req, err := http.NewRequestWithContext( ctx, http.MethodPost, reqURL, bodyReader )
 	if err != nil {
 		return fmt.Errorf( "netloc8: create request: %w", err )
 	}
 
 	c.setHeaders( req )
-	req.Header.Set( "Content-Type", "application/json" )
+	if body != nil {
+		req.Header.Set( "Content-Type", "application/json" )
+	}
 
 	resp, err := c.client.Do( req )
 	if err != nil {
