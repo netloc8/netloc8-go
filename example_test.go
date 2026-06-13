@@ -115,3 +115,103 @@ func ExampleIsEU() {
 	// false
 	// false
 }
+
+func ExampleClient_CreateKey() {
+	// Simulate the API with a test server.
+	srv := httptest.NewServer( http.HandlerFunc( func( w http.ResponseWriter, r *http.Request ) {
+		w.Header().Set( "Content-Type", "application/json" )
+		w.WriteHeader( 201 )
+		json.NewEncoder( w ).Encode( map[string]any{
+			"id":        "key_abc123",
+			"prefix":    "sk_live_",
+			"name":      "CI Pipeline",
+			"type":      "secret",
+			"scopes":    []string{ "geo:read" },
+			"status":    "active",
+			"createdAt": "2024-06-13T12:00:00Z",
+			"rawKey":    "sk_live_abc123def456",
+		})
+	}))
+	defer srv.Close()
+
+	client := netloc8.NewClient( "sk_test", netloc8.WithBaseURL( srv.URL ) )
+
+	key, err := client.CreateKey( context.Background(), "CI Pipeline",
+		netloc8.WithKeyType( "secret" ),
+	)
+	if err != nil {
+		fmt.Println( "error:", err )
+		return
+	}
+
+	fmt.Println( key.Name )
+	fmt.Println( key.Type )
+	fmt.Println( key.RawKey )
+	// Output:
+	// CI Pipeline
+	// secret
+	// sk_live_abc123def456
+}
+
+func ExampleClient_GetUsage() {
+	srv := httptest.NewServer( http.HandlerFunc( func( w http.ResponseWriter, r *http.Request ) {
+		w.Header().Set( "Content-Type", "application/json" )
+		json.NewEncoder( w ).Encode( map[string]any{
+			"total":  15432,
+			"cap":    100000,
+			"period": "2024-06",
+		})
+	}))
+	defer srv.Close()
+
+	client := netloc8.NewClient( "sk_test", netloc8.WithBaseURL( srv.URL ) )
+
+	usage, err := client.GetUsage( context.Background() )
+	if err != nil {
+		fmt.Println( "error:", err )
+		return
+	}
+
+	fmt.Printf( "%d / %d requests (%s)\n", usage.Total, usage.Cap, usage.Period )
+	// Output:
+	// 15432 / 100000 requests (2024-06)
+}
+
+func ExampleClient_GetAuditLog() {
+	srv := httptest.NewServer( http.HandlerFunc( func( w http.ResponseWriter, r *http.Request ) {
+		w.Header().Set( "Content-Type", "application/json" )
+		json.NewEncoder( w ).Encode( map[string]any{
+			"entries": []map[string]any{
+				{
+					"id":         "aud_001",
+					"action":     "key.created",
+					"actorId":    "usr_abc",
+					"actorLabel": "tom@example.com",
+					"createdAt":  "2024-06-13T12:00:00Z",
+				},
+			},
+			"total": 1,
+		})
+	}))
+	defer srv.Close()
+
+	client := netloc8.NewClient( "sk_test", netloc8.WithBaseURL( srv.URL ) )
+
+	log, err := client.GetAuditLog( context.Background(),
+		netloc8.WithLimit( 10 ),
+		netloc8.WithAction( "key.created" ),
+	)
+	if err != nil {
+		fmt.Println( "error:", err )
+		return
+	}
+
+	fmt.Println( log.Total )
+	fmt.Println( log.Entries[0].Action )
+	fmt.Println( log.Entries[0].ActorLabel )
+	// Output:
+	// 1
+	// key.created
+	// tom@example.com
+}
+

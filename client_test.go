@@ -113,6 +113,30 @@ func TestNewClient_Options( t *testing.T ) {
 	}
 }
 
+func TestNewClient_TimeoutOrdering( t *testing.T ) {
+	// WithTimeout before WithHTTPClient — should still apply.
+	custom := &http.Client{ Timeout: 30 * time.Second }
+	c := NewClient( "sk_test",
+		WithTimeout( 5 * time.Second ),
+		WithHTTPClient( custom ),
+	)
+
+	if c.client.Timeout != 5*time.Second {
+		t.Errorf( "Timeout = %v, want 5s (timeout before http client)", c.client.Timeout )
+	}
+
+	// WithTimeout after WithHTTPClient — should also work.
+	custom2 := &http.Client{ Timeout: 30 * time.Second }
+	c2 := NewClient( "sk_test",
+		WithHTTPClient( custom2 ),
+		WithTimeout( 3 * time.Second ),
+	)
+
+	if c2.client.Timeout != 3*time.Second {
+		t.Errorf( "Timeout = %v, want 3s (timeout after http client)", c2.client.Timeout )
+	}
+}
+
 // ──────────────────────────────────────────────────────
 // Request headers
 // ──────────────────────────────────────────────────────

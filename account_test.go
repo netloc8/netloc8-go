@@ -244,12 +244,9 @@ func TestClient_CreateKey_NoType( t *testing.T ) {
 		t.Fatalf( "CreateKey: %v", err )
 	}
 
-	// type should be omitted when WithKeyType is not called.
+	// type should be omitted when WithKeyType is not called (omitempty).
 	if _, ok := capturedBody["type"]; ok {
-		val := capturedBody["type"]
-		if val != nil && val != "" {
-			t.Errorf( "body.type should be empty or omitted, got %q", val )
-		}
+		t.Errorf( "body should not contain 'type' key when WithKeyType is not used, got %v", capturedBody["type"] )
 	}
 }
 
