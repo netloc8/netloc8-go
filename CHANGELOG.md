@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] — 2026-06-13
+
+### Added
+
+- `RegionCode()` accessor — returns the ISO 3166-2 subdivision code (e.g. `"CA"`), nil-safe
+- `Lat()` accessor — returns latitude coordinate, nil-safe
+- `Lng()` accessor — returns longitude coordinate, nil-safe
+
+### Changed
+
+- README "Response Shape" section now uses `RegionCode()`, `Lat()`, `Lng()` accessors instead of raw field access
+
 ## [1.1.0] — 2026-06-13
 
 ### Added

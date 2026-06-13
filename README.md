@@ -77,12 +77,12 @@ geo.CountryCode()                       // "US"
 geo.CountryName()                       // "United States"
 geo.Location.Country.Flag               // "🇺🇸"
 geo.Location.Country.Unions             // ["EU"] or []
-geo.Location.Region.Code                // "CA"
+geo.RegionCode()                        // "CA"
 geo.RegionName()                        // "California"
 geo.CityName()                          // "Mountain View"
 geo.Location.PostalCode                 // "94043"
-geo.Location.Coordinates.Latitude       // 37.386
-geo.Location.Coordinates.Longitude      // -122.084
+geo.Lat()                               // 37.386
+geo.Lng()                               // -122.084
 geo.TZ()                                // "America/Los_Angeles"
 geo.Location.UTCOffset                  // "-07:00"
 geo.Location.GeoConfidence              // 1.0
