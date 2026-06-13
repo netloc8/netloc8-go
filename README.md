@@ -100,6 +100,8 @@ nil-check nested structs.
 
 All methods accept `context.Context` for cancellation and timeouts.
 
+### Geolocation
+
 | Method | Description |
 |--------|-------------|
 | `LookupIP(ctx, ip)` | Full geolocation for a specific IP address |
@@ -107,6 +109,23 @@ All methods accept `context.Context` for cancellation and timeouts.
 | `Timezone(ctx, ip)` | IANA timezone string for a specific IP |
 | `MyTimezone(ctx)` | IANA timezone string for the caller's own IP |
 | `Validate(ctx, ip)` | Check whether a string is a valid IP address (via API) |
+
+### Account Management
+
+Requires a secret key (`sk_`).
+
+| Method | Description |
+|--------|-------------|
+| `GetProfile(ctx)` | Fetch the authenticated user's profile |
+| `ListKeys(ctx)` | List all API keys (metadata only) |
+| `CreateKey(ctx, name, ...opts)` | Create a new API key — returns the raw key once |
+| `DeleteKey(ctx, keyID)` | Permanently delete an API key |
+| `RenewKey(ctx, keyID)` | Extend a key's expiration |
+| `GetUsage(ctx)` | API usage statistics for the current billing period |
+| `GetAuditLog(ctx, ...opts)` | Paginated audit log with optional filters |
+| `ListSites(ctx)` | List allowed origins for publishable keys |
+| `CreateSite(ctx, origin)` | Add an allowed origin |
+| `DeleteSite(ctx, siteID)` | Remove an allowed origin |
 
 ## Client Options
 
@@ -192,13 +211,7 @@ func handler( w http.ResponseWriter, r *http.Request ) {
 }
 ```
 
-## Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NETLOC8_API_KEY` | No | Fallback API key if not passed to `NewClient` |
-
-### API Key Types
+## API Key Types
 
 | Key type | Prefix | Usage |
 |----------|--------|-------|

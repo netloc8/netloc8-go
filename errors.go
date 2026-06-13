@@ -1,6 +1,7 @@
 package netloc8
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -46,16 +47,20 @@ type apiErrorResponse struct {
 }
 
 // IsNotFound reports whether the error is a 404 Not Found response.
+// Works with wrapped errors via errors.As.
 func IsNotFound( err error ) bool {
-	if apiErr, ok := err.( *APIError ); ok {
+	var apiErr *APIError
+	if errors.As( err, &apiErr ) {
 		return apiErr.Status == 404
 	}
 	return false
 }
 
 // IsRateLimited reports whether the error is a 429 Rate Limit Exceeded response.
+// Works with wrapped errors via errors.As.
 func IsRateLimited( err error ) bool {
-	if apiErr, ok := err.( *APIError ); ok {
+	var apiErr *APIError
+	if errors.As( err, &apiErr ) {
 		return apiErr.Status == 429
 	}
 	return false
@@ -64,9 +69,12 @@ func IsRateLimited( err error ) bool {
 // IsForbidden reports whether the error is a 403 Forbidden response.
 // This typically means the API key lacks the required scope or the
 // origin does not match.
+// Works with wrapped errors via errors.As.
 func IsForbidden( err error ) bool {
-	if apiErr, ok := err.( *APIError ); ok {
+	var apiErr *APIError
+	if errors.As( err, &apiErr ) {
 		return apiErr.Status == 403
 	}
 	return false
 }
+

@@ -1,6 +1,7 @@
 package netloc8
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -39,6 +40,7 @@ type Client struct {
 	baseURL   string
 	origin    string
 	userAgent string
+	timeout   time.Duration
 	client    *http.Client
 }
 
@@ -71,12 +73,11 @@ func WithHTTPClient( hc *http.Client ) Option {
 }
 
 // WithTimeout sets the request timeout for API calls.
-// Overrides the timeout on the default http.Client. If a custom
-// http.Client is provided via WithHTTPClient, this option sets
-// its Timeout field.
+// The timeout is applied after all options, so it works correctly
+// regardless of whether WithHTTPClient is called before or after.
 func WithTimeout( d time.Duration ) Option {
 	return func( c *Client ) {
-		c.client.Timeout = d
+		c.timeout = d
 	}
 }
 
@@ -114,6 +115,12 @@ func NewClient( apiKey string, opts ...Option ) *Client {
 
 	for _, opt := range opts {
 		opt( c )
+	}
+
+	// Apply timeout after all options so it works regardless of
+	// WithHTTPClient ordering.
+	if c.timeout > 0 {
+		c.client.Timeout = c.timeout
 	}
 
 	return c
@@ -219,6 +226,96 @@ func ( c *Client ) doJSON( ctx context.Context, path string, dst any ) error {
 
 	if err := json.Unmarshal( body, dst ); err != nil {
 		return fmt.Errorf( "netloc8: decode response: %w", err )
+	}
+
+	return nil
+}
+
+// doPost sends a POST request with a JSON body and decodes the JSON
+// response into dst. Returns *APIError for non-2xx responses.
+func ( c *Client ) doPost( ctx context.Context, path string, body any, dst any ) error {
+	var bodyReader io.Reader
+	if body != nil {
+		var buf bytes.Buffer
+		if err := json.NewEncoder( &buf ).Encode( body ); err != nil {
+			return fmt.Errorf( "netloc8: encode request body: %w", err )
+		}
+		bodyReader = &buf
+	}
+
+	reqURL := c.baseURL + path
+
+	req, err := http.NewRequestWithContext( ctx, http.MethodPost, reqURL, bodyReader )
+	if err != nil {
+		return fmt.Errorf( "netloc8: create request: %w", err )
+	}
+
+	c.setHeaders( req )
+	if body != nil {
+		req.Header.Set( "Content-Type", "application/json" )
+	}
+
+	resp, err := c.client.Do( req )
+	if err != nil {
+		return fmt.Errorf( "netloc8: request failed: %w", err )
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll( resp.Body )
+	if err != nil {
+		return fmt.Errorf( "netloc8: read response: %w", err )
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return c.parseError( resp.StatusCode, respBody )
+	}
+
+	if dst != nil && len( respBody ) > 0 {
+		if err := json.Unmarshal( respBody, dst ); err != nil {
+			return fmt.Errorf( "netloc8: decode response: %w", err )
+		}
+	}
+
+	return nil
+}
+
+// doDelete sends a DELETE request and decodes the JSON response into dst.
+// If the server responds with 204 No Content, dst is left untouched.
+// Returns *APIError for non-2xx responses.
+func ( c *Client ) doDelete( ctx context.Context, path string, dst any ) error {
+	reqURL := c.baseURL + path
+
+	req, err := http.NewRequestWithContext( ctx, http.MethodDelete, reqURL, nil )
+	if err != nil {
+		return fmt.Errorf( "netloc8: create request: %w", err )
+	}
+
+	c.setHeaders( req )
+
+	resp, err := c.client.Do( req )
+	if err != nil {
+		return fmt.Errorf( "netloc8: request failed: %w", err )
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll( resp.Body )
+	if err != nil {
+		return fmt.Errorf( "netloc8: read response: %w", err )
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return c.parseError( resp.StatusCode, respBody )
+	}
+
+	// 204 No Content — nothing to decode.
+	if resp.StatusCode == http.StatusNoContent || len( respBody ) == 0 {
+		return nil
+	}
+
+	if dst != nil {
+		if err := json.Unmarshal( respBody, dst ); err != nil {
+			return fmt.Errorf( "netloc8: decode response: %w", err )
+		}
 	}
 
 	return nil
