@@ -16,7 +16,7 @@ timezone-accurate scheduling, and regional content delivery.
 - **Zero dependencies** — only the Go standard library. No transitive dependency tree to audit
 - **Proxy-aware** — plug in any `*http.Client` with a proxy transport to discover exit IPs through tunnels
 - **Context-native** — every API call takes `context.Context` for cancellation, timeouts, and tracing
-- **Nil-safe accessors** — `geo.CountryCode()`, `geo.CityName()`, `geo.TZ()` never panic on partial responses
+- **Nil-safe accessors** — `geo.CountryCode()`, `geo.CityName()`, `geo.Lat()`, `geo.TZ()` never panic on partial responses
 - **Typed errors** — `*APIError` with machine-readable codes, `errors.As` support, and convenience predicates
 - **Privacy compliance ready** — `IsEU()` helper for GDPR, country and region fields for CCPA and other regulations
 
@@ -77,12 +77,12 @@ geo.CountryCode()                       // "US"
 geo.CountryName()                       // "United States"
 geo.Location.Country.Flag               // "🇺🇸"
 geo.Location.Country.Unions             // ["EU"] or []
-geo.Location.Region.Code                // "CA"
+geo.RegionCode()                        // "CA"
 geo.RegionName()                        // "California"
 geo.CityName()                          // "Mountain View"
 geo.Location.PostalCode                 // "94043"
-geo.Location.Coordinates.Latitude       // 37.386
-geo.Location.Coordinates.Longitude      // -122.084
+geo.Lat()                               // 37.386
+geo.Lng()                               // -122.084
 geo.TZ()                                // "America/Los_Angeles"
 geo.Location.UTCOffset                  // "-07:00"
 geo.Location.GeoConfidence              // 1.0
@@ -92,9 +92,10 @@ geo.Network.Domain                      // "google.com"
 geo.Meta.Precision                      // "city"
 ```
 
-All accessor methods (`CountryCode()`, `CityName()`, `TZ()`, etc.) are nil-safe
-— they return empty strings on nil or partial responses, so you never need to
-nil-check nested structs.
+All accessor methods (`CountryCode()`, `CityName()`, `Lat()`, `TZ()`, etc.) are nil-safe
+— they return zero values (empty strings or `0`) on nil or partial responses, so you
+never need to nil-check nested structs. Use `HasCoordinates()` to distinguish
+absent coordinates from a real `0,0` location.
 
 ## API Methods
 

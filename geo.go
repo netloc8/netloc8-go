@@ -149,6 +149,15 @@ func ( g *Geo ) RegionName() string {
 	return g.Location.Region.Name
 }
 
+// RegionCode returns the ISO 3166-2 subdivision code (e.g. "CA"), or empty string.
+// Safe to call on nil Geo.
+func ( g *Geo ) RegionCode() string {
+	if g == nil || g.Location == nil || g.Location.Region == nil {
+		return ""
+	}
+	return g.Location.Region.Code
+}
+
 // CityName returns the city name, or empty string.
 // Safe to call on nil Geo.
 func ( g *Geo ) CityName() string {
@@ -156,6 +165,32 @@ func ( g *Geo ) CityName() string {
 		return ""
 	}
 	return g.Location.City
+}
+
+// Lat returns the latitude coordinate, or 0.
+// Safe to call on nil Geo.
+func ( g *Geo ) Lat() float64 {
+	if g == nil || g.Location == nil || g.Location.Coordinates == nil {
+		return 0
+	}
+	return g.Location.Coordinates.Latitude
+}
+
+// Lng returns the longitude coordinate, or 0.
+// Safe to call on nil Geo.
+func ( g *Geo ) Lng() float64 {
+	if g == nil || g.Location == nil || g.Location.Coordinates == nil {
+		return 0
+	}
+	return g.Location.Coordinates.Longitude
+}
+
+// HasCoordinates reports whether the geolocation result includes
+// coordinate data. Use this to distinguish absent coordinates from
+// a real 0,0 location (equator/prime meridian).
+// Safe to call on nil Geo.
+func ( g *Geo ) HasCoordinates() bool {
+	return g != nil && g.Location != nil && g.Location.Coordinates != nil
 }
 
 // TZ returns the IANA timezone string, or empty string.

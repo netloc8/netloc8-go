@@ -83,6 +83,18 @@ func TestGeo_JSONRoundtrip( t *testing.T ) {
 	if decoded.CountryName() != "United States" {
 		t.Errorf( "CountryName() = %q, want United States", decoded.CountryName() )
 	}
+	if decoded.RegionCode() != "CA" {
+		t.Errorf( "RegionCode() = %q, want CA", decoded.RegionCode() )
+	}
+	if decoded.Lat() != 37.386 {
+		t.Errorf( "Lat() = %f, want 37.386", decoded.Lat() )
+	}
+	if decoded.Lng() != -122.084 {
+		t.Errorf( "Lng() = %f, want -122.084", decoded.Lng() )
+	}
+	if !decoded.HasCoordinates() {
+		t.Error( "HasCoordinates() should be true for full geo" )
+	}
 }
 
 func TestGeo_NilSafety( t *testing.T ) {
@@ -112,6 +124,18 @@ func TestGeo_NilSafety( t *testing.T ) {
 	if g.Org() != "" {
 		t.Error( "nil Geo.Org() should be empty" )
 	}
+	if g.RegionCode() != "" {
+		t.Error( "nil Geo.RegionCode() should be empty" )
+	}
+	if g.Lat() != 0 {
+		t.Error( "nil Geo.Lat() should be 0" )
+	}
+	if g.Lng() != 0 {
+		t.Error( "nil Geo.Lng() should be 0" )
+	}
+	if g.HasCoordinates() {
+		t.Error( "nil Geo.HasCoordinates() should be false" )
+	}
 
 	// Partial Geo with nil sub-structs.
 	partial := &Geo{}
@@ -120,6 +144,18 @@ func TestGeo_NilSafety( t *testing.T ) {
 	}
 	if partial.CityName() != "" {
 		t.Error( "empty Geo.CityName() should be empty" )
+	}
+	if partial.RegionCode() != "" {
+		t.Error( "empty Geo.RegionCode() should be empty" )
+	}
+	if partial.Lat() != 0 {
+		t.Error( "empty Geo.Lat() should be 0" )
+	}
+	if partial.Lng() != 0 {
+		t.Error( "empty Geo.Lng() should be 0" )
+	}
+	if partial.HasCoordinates() {
+		t.Error( "empty Geo.HasCoordinates() should be false" )
 	}
 }
 
@@ -276,8 +312,8 @@ func TestGeoFromPlatformHeaders( t *testing.T ) {
 		if geo.CountryCode() != "US" {
 			t.Errorf( "CountryCode() = %q, want US", geo.CountryCode() )
 		}
-		if geo.Location.Region.Code != "CA" {
-			t.Errorf( "Region.Code = %q, want CA", geo.Location.Region.Code )
+		if geo.RegionCode() != "CA" {
+			t.Errorf( "RegionCode() = %q, want CA", geo.RegionCode() )
 		}
 		if geo.CityName() != "Mountain View" {
 			t.Errorf( "CityName() = %q, want Mountain View", geo.CityName() )
@@ -285,11 +321,11 @@ func TestGeoFromPlatformHeaders( t *testing.T ) {
 		if geo.TZ() != "America/Los_Angeles" {
 			t.Errorf( "TZ() = %q, want America/Los_Angeles", geo.TZ() )
 		}
-		if geo.Location.Coordinates.Latitude != 37.386 {
-			t.Errorf( "Latitude = %f, want 37.386", geo.Location.Coordinates.Latitude )
+		if geo.Lat() != 37.386 {
+			t.Errorf( "Lat() = %f, want 37.386", geo.Lat() )
 		}
-		if geo.Location.Coordinates.Longitude != -122.084 {
-			t.Errorf( "Longitude = %f, want -122.084", geo.Location.Coordinates.Longitude )
+		if geo.Lng() != -122.084 {
+			t.Errorf( "Lng() = %f, want -122.084", geo.Lng() )
 		}
 	})
 
