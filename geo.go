@@ -193,3 +193,30 @@ func ( g *Geo ) Org() string {
 	}
 	return g.Network.Organization
 }
+
+// RegionCode returns the ISO 3166-2 subdivision code (e.g. "CA"), or empty string.
+// Safe to call on nil Geo.
+func ( g *Geo ) RegionCode() string {
+	if g == nil || g.Location == nil || g.Location.Region == nil {
+		return ""
+	}
+	return g.Location.Region.Code
+}
+
+// Lat returns the latitude coordinate, or 0.
+// Safe to call on nil Geo.
+func ( g *Geo ) Lat() float64 {
+	if g == nil || g.Location == nil || g.Location.Coordinates == nil {
+		return 0
+	}
+	return g.Location.Coordinates.Latitude
+}
+
+// Lng returns the longitude coordinate, or 0.
+// Safe to call on nil Geo.
+func ( g *Geo ) Lng() float64 {
+	if g == nil || g.Location == nil || g.Location.Coordinates == nil {
+		return 0
+	}
+	return g.Location.Coordinates.Longitude
+}
