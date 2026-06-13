@@ -12,10 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `RegionCode()` accessor — returns the ISO 3166-2 subdivision code (e.g. `"CA"`), nil-safe
 - `Lat()` accessor — returns latitude coordinate, nil-safe
 - `Lng()` accessor — returns longitude coordinate, nil-safe
+- `HasCoordinates()` predicate — distinguishes absent coordinates from a real `0,0` location
 
 ### Changed
 
 - README "Response Shape" section now uses `RegionCode()`, `Lat()`, `Lng()` accessors instead of raw field access
+
+### Fixed
+
+- README nil-safety note now correctly states accessors return zero values (empty strings or `0`), not just "empty strings"
 
 ## [1.1.0] — 2026-06-13
 

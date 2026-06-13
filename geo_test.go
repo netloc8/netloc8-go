@@ -92,6 +92,9 @@ func TestGeo_JSONRoundtrip( t *testing.T ) {
 	if decoded.Lng() != -122.084 {
 		t.Errorf( "Lng() = %f, want -122.084", decoded.Lng() )
 	}
+	if !decoded.HasCoordinates() {
+		t.Error( "HasCoordinates() should be true for full geo" )
+	}
 }
 
 func TestGeo_NilSafety( t *testing.T ) {
@@ -130,6 +133,9 @@ func TestGeo_NilSafety( t *testing.T ) {
 	if g.Lng() != 0 {
 		t.Error( "nil Geo.Lng() should be 0" )
 	}
+	if g.HasCoordinates() {
+		t.Error( "nil Geo.HasCoordinates() should be false" )
+	}
 
 	// Partial Geo with nil sub-structs.
 	partial := &Geo{}
@@ -147,6 +153,9 @@ func TestGeo_NilSafety( t *testing.T ) {
 	}
 	if partial.Lng() != 0 {
 		t.Error( "empty Geo.Lng() should be 0" )
+	}
+	if partial.HasCoordinates() {
+		t.Error( "empty Geo.HasCoordinates() should be false" )
 	}
 }
 

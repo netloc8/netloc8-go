@@ -92,9 +92,10 @@ geo.Network.Domain                      // "google.com"
 geo.Meta.Precision                      // "city"
 ```
 
-All accessor methods (`CountryCode()`, `CityName()`, `TZ()`, etc.) are nil-safe
-— they return empty strings on nil or partial responses, so you never need to
-nil-check nested structs.
+All accessor methods (`CountryCode()`, `CityName()`, `Lat()`, `TZ()`, etc.) are nil-safe
+— they return zero values (empty strings or `0`) on nil or partial responses, so you
+never need to nil-check nested structs. Use `HasCoordinates()` to distinguish
+absent coordinates from a real `0,0` location.
 
 ## API Methods
 

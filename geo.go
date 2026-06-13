@@ -185,6 +185,14 @@ func ( g *Geo ) Lng() float64 {
 	return g.Location.Coordinates.Longitude
 }
 
+// HasCoordinates reports whether the geolocation result includes
+// coordinate data. Use this to distinguish absent coordinates from
+// a real 0,0 location (equator/prime meridian).
+// Safe to call on nil Geo.
+func ( g *Geo ) HasCoordinates() bool {
+	return g != nil && g.Location != nil && g.Location.Coordinates != nil
+}
+
 // TZ returns the IANA timezone string, or empty string.
 // Safe to call on nil Geo.
 func ( g *Geo ) TZ() string {
