@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.1] — 2026-06-13
+
+### Fixed
+
+- `IsPublicIP` — IPv6 link-local detection now correctly covers the full `fe80::/10` range (`fe80::` through `febf::`). Previously only addresses starting with `fe80` were rejected; addresses like `fe90::1`, `fea0::1`, and `febf::1` were incorrectly treated as public. Now uses byte-level CIDR inspection instead of string prefix matching.
+
+### Added
+
+- Test cases for IPv6 link-local boundary: `fe90::1`, `fea0::1`, `febf::1` (non-public) and `fec0::1` (public, just outside `/10`).
+
 ## [1.2.0] — 2026-06-13
 
 ### Added

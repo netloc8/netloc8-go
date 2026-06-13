@@ -115,8 +115,8 @@ func IsPublicIP( ip string ) bool {
 		return false
 	}
 
-	// Link-local: fe80::/10
-	if strings.HasPrefix( normalized, "fe80" ) {
+	// Link-local: fe80::/10 (covers fe80:: through febf::)
+	if ip16 := parsed.To16(); ip16 != nil && ip16[0] == 0xfe && ip16[1]&0xc0 == 0x80 {
 		return false
 	}
 

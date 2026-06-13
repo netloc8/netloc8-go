@@ -66,6 +66,10 @@ func TestIsPublicIP( t *testing.T ) {
 		{ "169.254.0.1", false },
 		{ "169.254.255.255", false },
 		{ "fe80::1", false },
+		{ "fe90::1", false },          // fe80::/10 covers fe80–febf.
+		{ "fea0::1", false },          // fe80::/10 covers fe80–febf.
+		{ "febf::1", false },          // fe80::/10 upper bound.
+		{ "fec0::1", true },           // Just outside fe80::/10.
 
 		// ULA.
 		{ "fc00::1", false },
