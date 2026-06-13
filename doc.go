@@ -78,4 +78,60 @@
 //
 //	geo, err := client.LookupMe( ctx )
 //	// geo.Query.Value is the proxy's exit IP
+//
+// # Account Management
+//
+// Manage your account, API keys, usage, and allowed origins with a
+// secret key (sk_):
+//
+//	client := netloc8.NewClient( "sk_your_secret_key" )
+//
+//	// Fetch your profile.
+//	profile, err := client.GetProfile( ctx )
+//	fmt.Println( profile.Email )
+//
+//	// List all API keys.
+//	keys, err := client.ListKeys( ctx )
+//	for _, k := range keys {
+//	    fmt.Printf( "%s (%s) — %s\n", k.Name, k.Prefix, k.Status )
+//	}
+//
+//	// Create a new secret key.
+//	created, err := client.CreateKey( ctx, "CI Pipeline",
+//	    netloc8.WithKeyType( "secret" ),
+//	)
+//	fmt.Println( created.RawKey ) // store this — only shown once
+//
+//	// Delete a key.
+//	err = client.DeleteKey( ctx, "key_id" )
+//
+//	// Renew a key before it expires.
+//	renewed, err := client.RenewKey( ctx, "key_id" )
+//
+// # Usage Statistics
+//
+// Check API consumption for the current billing period:
+//
+//	usage, err := client.GetUsage( ctx )
+//	fmt.Printf( "%d / %d requests (%s)\n", usage.Total, usage.Cap, usage.Period )
+//
+// # Audit Log
+//
+// Query account activity with optional filters:
+//
+//	log, err := client.GetAuditLog( ctx,
+//	    netloc8.WithLimit( 25 ),
+//	    netloc8.WithAction( "key.created" ),
+//	)
+//	for _, entry := range log.Entries {
+//	    fmt.Printf( "%s: %s by %s\n", entry.CreatedAt, entry.Action, entry.ActorLabel )
+//	}
+//
+// # Allowed Origins
+//
+// Manage allowed origins for publishable keys:
+//
+//	sites, err := client.ListSites( ctx )
+//	site, err := client.CreateSite( ctx, "https://my-app.com" )
+//	err = client.DeleteSite( ctx, site.ID )
 package netloc8
