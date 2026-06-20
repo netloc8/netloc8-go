@@ -154,12 +154,16 @@ func ExampleClient_CreateKey() {
 }
 
 func ExampleClient_GetUsage() {
+	monthlyCap := 100000
 	srv := httptest.NewServer( http.HandlerFunc( func( w http.ResponseWriter, r *http.Request ) {
 		w.Header().Set( "Content-Type", "application/json" )
 		json.NewEncoder( w ).Encode( map[string]any{
-			"total":  15432,
-			"cap":    100000,
-			"period": "2024-06",
+			"totalKeys":     3,
+			"activeKeys":    2,
+			"totalRequests": 15432,
+			"monthlyCap":    monthlyCap,
+			"dailyUsage":    []any{},
+			"keys":          []any{},
 		})
 	}))
 	defer srv.Close()
@@ -172,9 +176,13 @@ func ExampleClient_GetUsage() {
 		return
 	}
 
-	fmt.Printf( "%d / %d requests (%s)\n", usage.Total, usage.Cap, usage.Period )
+	if usage.MonthlyCap != nil {
+		fmt.Printf( "%d / %d requests (%d keys)\n", usage.TotalRequests, *usage.MonthlyCap, usage.TotalKeys )
+	} else {
+		fmt.Printf( "%d requests, unlimited (%d keys)\n", usage.TotalRequests, usage.TotalKeys )
+	}
 	// Output:
-	// 15432 / 100000 requests (2024-06)
+	// 15432 / 100000 requests (3 keys)
 }
 
 func ExampleClient_GetAuditLog() {

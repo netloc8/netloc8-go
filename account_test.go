@@ -391,20 +391,30 @@ func TestClient_RenewKey_Error( t *testing.T ) {
 func TestClient_GetUsage( t *testing.T ) {
 	var capturedPath string
 
+	monthlyCap := 100000
+	lastUsed := "2024-06-13T12:00:00Z"
+
 	client, _ := newTestServer( t, func( w http.ResponseWriter, r *http.Request ) {
 		capturedPath = r.URL.Path
 		w.Header().Set( "Content-Type", "application/json" )
 		json.NewEncoder( w ).Encode( Usage{
-			Total:  15432,
-			Cap:    100000,
-			Period: "2024-06",
-			Daily: map[string]int{
-				"2024-06-12": 512,
-				"2024-06-13": 489,
+			TotalKeys:     3,
+			ActiveKeys:    2,
+			TotalRequests: 15432,
+			MonthlyCap:    &monthlyCap,
+			DailyUsage: []DailyUsage{
+				{ Date: "2024-06-12", TotalRequests: 512 },
+				{ Date: "2024-06-13", TotalRequests: 489 },
 			},
-			ByKey: map[string]int{
-				"key_001": 12000,
-				"key_002": 3432,
+			Keys: []KeyUsage{
+				{
+					KeyPrefix:          "sk_live_",
+					KeyName:            "Production",
+					IsActive:           true,
+					LastUsedAt:         &lastUsed,
+					RateLimitRemaining: 9500,
+					RateLimitMax:       10000,
+				},
 			},
 		})
 	})
@@ -417,20 +427,26 @@ func TestClient_GetUsage( t *testing.T ) {
 	if capturedPath != "/v1/account/me/usage" {
 		t.Errorf( "path = %q, want /v1/account/me/usage", capturedPath )
 	}
-	if u.Total != 15432 {
-		t.Errorf( "Total = %d, want 15432", u.Total )
+	if u.TotalRequests != 15432 {
+		t.Errorf( "TotalRequests = %d, want 15432", u.TotalRequests )
 	}
-	if u.Cap != 100000 {
-		t.Errorf( "Cap = %d, want 100000", u.Cap )
+	if u.MonthlyCap == nil || *u.MonthlyCap != 100000 {
+		t.Errorf( "MonthlyCap = %v, want 100000", u.MonthlyCap )
 	}
-	if u.Period != "2024-06" {
-		t.Errorf( "Period = %q, want 2024-06", u.Period )
+	if u.TotalKeys != 3 {
+		t.Errorf( "TotalKeys = %d, want 3", u.TotalKeys )
 	}
-	if len( u.Daily ) != 2 {
-		t.Errorf( "len(Daily) = %d, want 2", len( u.Daily ) )
+	if u.ActiveKeys != 2 {
+		t.Errorf( "ActiveKeys = %d, want 2", u.ActiveKeys )
 	}
-	if u.ByKey["key_001"] != 12000 {
-		t.Errorf( "ByKey[key_001] = %d, want 12000", u.ByKey["key_001"] )
+	if len( u.DailyUsage ) != 2 {
+		t.Errorf( "len(DailyUsage) = %d, want 2", len( u.DailyUsage ) )
+	}
+	if len( u.Keys ) != 1 {
+		t.Fatalf( "len(Keys) = %d, want 1", len( u.Keys ) )
+	}
+	if u.Keys[0].KeyName != "Production" {
+		t.Errorf( "Keys[0].KeyName = %q, want Production", u.Keys[0].KeyName )
 	}
 }
 
@@ -452,6 +468,95 @@ func TestClient_GetUsage_Error( t *testing.T ) {
 	}
 	if !IsRateLimited( err ) {
 		t.Error( "IsRateLimited should be true" )
+	}
+}
+
+func TestClient_GetUsage_NullMonthlyCap( t *testing.T ) {
+	// Enterprise plans have unlimited usage — monthlyCap is null in the API response.
+	client, _ := newTestServer( t, func( w http.ResponseWriter, r *http.Request ) {
+		w.Header().Set( "Content-Type", "application/json" )
+		json.NewEncoder( w ).Encode( map[string]any{
+			"totalKeys":     5,
+			"activeKeys":    5,
+			"totalRequests": 500000,
+			"monthlyCap":    nil,
+			"dailyUsage":    []any{},
+			"keys":          []any{},
+		})
+	})
+
+	u, err := client.GetUsage( context.Background() )
+	if err != nil {
+		t.Fatalf( "GetUsage: %v", err )
+	}
+
+	if u.MonthlyCap != nil {
+		t.Errorf( "MonthlyCap = %v, want nil (unlimited)", u.MonthlyCap )
+	}
+	if u.TotalRequests != 500000 {
+		t.Errorf( "TotalRequests = %d, want 500000", u.TotalRequests )
+	}
+}
+
+func TestClient_GetUsage_EmptyArrays( t *testing.T ) {
+	// Fresh account with no usage data yet.
+	monthlyCap := 1000
+
+	client, _ := newTestServer( t, func( w http.ResponseWriter, r *http.Request ) {
+		w.Header().Set( "Content-Type", "application/json" )
+		json.NewEncoder( w ).Encode( Usage{
+			TotalKeys:     1,
+			ActiveKeys:    1,
+			TotalRequests: 0,
+			MonthlyCap:    &monthlyCap,
+			DailyUsage:    []DailyUsage{},
+			Keys:          []KeyUsage{},
+		})
+	})
+
+	u, err := client.GetUsage( context.Background() )
+	if err != nil {
+		t.Fatalf( "GetUsage: %v", err )
+	}
+
+	if u.TotalRequests != 0 {
+		t.Errorf( "TotalRequests = %d, want 0", u.TotalRequests )
+	}
+	if len( u.DailyUsage ) != 0 {
+		t.Errorf( "len(DailyUsage) = %d, want 0", len( u.DailyUsage ) )
+	}
+	if len( u.Keys ) != 0 {
+		t.Errorf( "len(Keys) = %d, want 0", len( u.Keys ) )
+	}
+}
+
+func TestClient_GetProfile_MinimalAPIKey( t *testing.T ) {
+	// When authenticated via API key, the profile endpoint returns
+	// a minimal response with null name/email (the server only has the userId).
+	client, _ := newTestServer( t, func( w http.ResponseWriter, r *http.Request ) {
+		w.Header().Set( "Content-Type", "application/json" )
+		json.NewEncoder( w ).Encode( map[string]any{
+			"id":            "usr_key123",
+			"name":          nil,
+			"email":         nil,
+			"emailVerified": false,
+			"createdAt":     nil,
+		})
+	})
+
+	p, err := client.GetProfile( context.Background() )
+	if err != nil {
+		t.Fatalf( "GetProfile: %v", err )
+	}
+
+	if p.ID != "usr_key123" {
+		t.Errorf( "ID = %q, want usr_key123", p.ID )
+	}
+	if p.Name != "" {
+		t.Errorf( "Name = %q, want empty (null)", p.Name )
+	}
+	if p.Email != "" {
+		t.Errorf( "Email = %q, want empty (null)", p.Email )
 	}
 }
 

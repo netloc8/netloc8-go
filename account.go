@@ -39,11 +39,28 @@ type CreatedKey struct {
 
 // Usage holds API usage statistics for the current billing period.
 type Usage struct {
-	Total  int            `json:"total"`
-	Cap    int            `json:"cap"`
-	Period string         `json:"period"`
-	Daily  map[string]int `json:"daily,omitempty"`
-	ByKey  map[string]int `json:"byKey,omitempty"`
+	TotalKeys     int         `json:"totalKeys"`
+	ActiveKeys    int         `json:"activeKeys"`
+	TotalRequests int         `json:"totalRequests"`
+	MonthlyCap    *int        `json:"monthlyCap"`
+	DailyUsage    []DailyUsage `json:"dailyUsage"`
+	Keys          []KeyUsage  `json:"keys"`
+}
+
+// DailyUsage holds request counts for a single day.
+type DailyUsage struct {
+	Date          string `json:"date"`
+	TotalRequests int    `json:"totalRequests"`
+}
+
+// KeyUsage holds per-key usage and rate limit status.
+type KeyUsage struct {
+	KeyPrefix           string  `json:"keyPrefix"`
+	KeyName             string  `json:"keyName"`
+	IsActive            bool    `json:"isActive"`
+	LastUsedAt          *string `json:"lastUsedAt"`
+	RateLimitRemaining  int     `json:"rateLimitRemaining"`
+	RateLimitMax        int     `json:"rateLimitMax"`
 }
 
 // AuditEntry represents a single audit log event.
