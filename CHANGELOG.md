@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.2] — 2026-06-24
+
+### Changed
+
+- Test fixtures in `account_test.go` and `example_test.go` updated to use `location:read` scope (renamed from `geo:read` as part of the monorepo-wide scope migration).
+
 ## [1.2.1] — 2026-06-13
 
 ### Fixed

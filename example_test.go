@@ -126,7 +126,7 @@ func ExampleClient_CreateKey() {
 			"prefix":    "sk_live_",
 			"name":      "CI Pipeline",
 			"type":      "secret",
-			"scopes":    []string{ "geo:read" },
+			"scopes":    []string{ "location:read" },
 			"status":    "active",
 			"createdAt": "2024-06-13T12:00:00Z",
 			"rawKey":    "sk_live_abc123def456",
