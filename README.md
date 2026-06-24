@@ -1,5 +1,8 @@
 # NetLoc8 Go SDK
 
+> **Note:** This repository is a read-only mirror. Please do not submit issues
+> or pull requests here; contributions and development are managed internally.
+
 [![Go Reference](https://pkg.go.dev/badge/github.com/netloc8/netloc8-go.svg)](https://pkg.go.dev/github.com/netloc8/netloc8-go)
 [![License: ELv2](https://img.shields.io/badge/license-ELv2-blue)](LICENSE)
 
